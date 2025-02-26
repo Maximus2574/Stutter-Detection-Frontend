@@ -79,12 +79,20 @@ export function Analyze() {
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop()
+      setIsRecording(false)
+      const blob = new Blob(chunksRef.current, { type: "video/webm" })
+      saveRecording(blob)
+      chunksRef.current = []
     }
-    setIsRecording(false)
   }
 
   const saveRecording = (blob) => {
     const url = URL.createObjectURL(blob)
+    setFile(new File([blob], "recorded_video.webm", { type: "video/webm" }))
+    videoRef.current.src = url
+    videoRef.current.muted = false
+    setIsPreviewingRecording(true)
+
     const a = document.createElement("a")
     document.body.appendChild(a)
     a.style = "display: none"
@@ -103,14 +111,6 @@ export function Analyze() {
         videoRef.current.pause()
         setIsPlaying(false)
       }
-    }
-  }
-
-  const startPreviewRecording = () => {
-    if (videoRef.current && file) {
-      videoRef.current.src = URL.createObjectURL(file)
-      videoRef.current.muted = false
-      setIsPreviewingRecording(true)
     }
   }
 
@@ -183,13 +183,7 @@ export function Analyze() {
             >
               <Label className="text-xl font-medium text-foreground">Or Record Video</Label>
               <div className="aspect-video bg-muted rounded-lg overflow-hidden shadow-inner relative">
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  playsInline
-                  muted={!isPreviewingRecording}
-                />
+                <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted={isRecording} />
                 {isRecording && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
                     <Mic className="h-12 w-12 animate-pulse" />
@@ -230,28 +224,15 @@ export function Analyze() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                {file && file.type.startsWith("video/") && !isRecording && (
-                  <>
-                    {!isPreviewingRecording && (
-                      <Button
-                        onClick={startPreviewRecording}
-                        variant="outline"
-                        className="transition-all duration-300 transform hover:scale-105"
-                      >
-                        Preview Recording
-                      </Button>
-                    )}
-                    {isPreviewingRecording && (
-                      <Button
-                        onClick={togglePlayPause}
-                        variant="outline"
-                        className="transition-all duration-300 transform hover:scale-105"
-                      >
-                        {isPlaying ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                        {isPlaying ? "Pause" : "Play"}
-                      </Button>
-                    )}
-                  </>
+                {file && !isRecording && (
+                  <Button
+                    onClick={togglePlayPause}
+                    variant="outline"
+                    className="transition-all duration-300 transform hover:scale-105"
+                  >
+                    {isPlaying ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                    {isPlaying ? "Pause" : "Play"}
+                  </Button>
                 )}
               </div>
             </motion.div>
