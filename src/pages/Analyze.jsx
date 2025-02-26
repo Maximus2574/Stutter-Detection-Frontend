@@ -16,6 +16,7 @@ export function Analyze() {
   const [isRecording, setIsRecording] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isPreviewingRecording, setIsPreviewingRecording] = useState(false)
   const [error, setError] = useState(null)
   const [gradeLevel, setGradeLevel] = useState("Class_1_3")
   const videoRef = useRef(null)
@@ -26,13 +27,14 @@ export function Analyze() {
   useEffect(() => {
     if (videoRef.current && !isRecording) {
       navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia({ video: true, audio: true })
         .then((stream) => {
           videoRef.current.srcObject = stream
+          videoRef.current.muted = true // Mute the video element
         })
         .catch((err) => {
-          console.error("Error accessing the camera:", err)
-          setError("Unable to access camera. Please check your permissions.")
+          console.error("Error accessing the camera or microphone:", err)
+          setError("Unable to access camera or microphone. Please check your permissions.")
         })
     }
   }, [isRecording])
@@ -53,7 +55,7 @@ export function Analyze() {
   const startRecording = async () => {
     try {
       const stream = videoRef.current.srcObject
-      mediaRecorderRef.current = new MediaRecorder(stream)
+      mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" })
       mediaRecorderRef.current.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunksRef.current.push(e.data)
@@ -69,6 +71,7 @@ export function Analyze() {
       setIsRecording(true)
       setError(null)
     } catch (err) {
+      console.error("Error starting recording:", err)
       setError("Unable to start recording. Please check your permissions.")
     }
   }
@@ -100,6 +103,14 @@ export function Analyze() {
         videoRef.current.pause()
         setIsPlaying(false)
       }
+    }
+  }
+
+  const startPreviewRecording = () => {
+    if (videoRef.current && file) {
+      videoRef.current.src = URL.createObjectURL(file)
+      videoRef.current.muted = false
+      setIsPreviewingRecording(true)
     }
   }
 
@@ -172,7 +183,13 @@ export function Analyze() {
             >
               <Label className="text-xl font-medium text-foreground">Or Record Video</Label>
               <div className="aspect-video bg-muted rounded-lg overflow-hidden shadow-inner relative">
-                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  playsInline
+                  muted={!isPreviewingRecording}
+                />
                 {isRecording && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
                     <Mic className="h-12 w-12 animate-pulse" />
@@ -214,14 +231,27 @@ export function Analyze() {
                   )}
                 </AnimatePresence>
                 {file && file.type.startsWith("video/") && !isRecording && (
-                  <Button
-                    onClick={togglePlayPause}
-                    variant="outline"
-                    className="transition-all duration-300 transform hover:scale-105"
-                  >
-                    {isPlaying ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                    {isPlaying ? "Pause" : "Play"}
-                  </Button>
+                  <>
+                    {!isPreviewingRecording && (
+                      <Button
+                        onClick={startPreviewRecording}
+                        variant="outline"
+                        className="transition-all duration-300 transform hover:scale-105"
+                      >
+                        Preview Recording
+                      </Button>
+                    )}
+                    {isPreviewingRecording && (
+                      <Button
+                        onClick={togglePlayPause}
+                        variant="outline"
+                        className="transition-all duration-300 transform hover:scale-105"
+                      >
+                        {isPlaying ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                        {isPlaying ? "Pause" : "Play"}
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </motion.div>
@@ -283,7 +313,7 @@ export function Analyze() {
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
               <p className="text-lg text-muted-foreground mb-4">
-                While recording, please read the following text aloud. The text will change every 10 seconds.
+                While recording, please read the following text aloud. The text will change every 15 seconds.
               </p>
               <ReadableText gradeLevel={gradeLevel} />
             </motion.div>
