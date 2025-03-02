@@ -97,7 +97,7 @@ export function Analyze() {
     document.body.appendChild(a)
     a.style = "display: none"
     a.href = url
-    a.download = "recorded_video.webm"
+    a.download = "recorded_video.mp4"
     a.click()
     window.URL.revokeObjectURL(url)
   }
@@ -292,9 +292,15 @@ export function Analyze() {
                 </SelectContent>
               </Select>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-              <p className="text-lg text-muted-foreground mb-4">
-                While recording, please read the following text aloud. The text will change every 15 seconds.
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="space-y-4"
+            >
+              <p className="text-lg text-muted-foreground">
+                Read the following text aloud. Use the buttons to navigate or wait for the text to change automatically
+                every 15 seconds.
               </p>
               <ReadableText gradeLevel={gradeLevel} />
             </motion.div>
