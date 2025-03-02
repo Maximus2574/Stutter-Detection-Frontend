@@ -22,20 +22,55 @@ This repository contains the frontend for the AI-powered stutter detection syste
 
 ```
 .
-├── public/                         # Static assets
+├── .gitignore
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── README.md
+├── tailwind.config.js
+├── vite.config.js
+├── public/
 │   ├── vite.svg
-├── src/                            # Frontend source code
-│   ├── assets/                     # Images, icons, and other assets
-│   ├── components/                 # Reusable UI components
-│   ├── pages/                      # Main pages of the application
-│   ├── App.jsx                     # Main application file
-│   ├── main.jsx                     # Entry point for React
-├── .gitignore                       # Specifies untracked files
-├── index.html                       # Main HTML file
-├── package.json                     # Project dependencies and scripts
-├── tailwind.config.js               # Tailwind CSS configuration
-├── vite.config.js                   # Vite configuration
-└── README.md                        # Project documentation
+├── src/
+│   ├── App.jsx
+│   ├── index.css
+│   ├── main.jsx
+│   ├── assets/
+│   │   ├── react.svg
+│   ├── components/
+│   │   ├── AnimatedBackground.jsx
+│   │   ├── ErrorBoundary.jsx
+│   │   ├── FloatingLetters.jsx
+│   │   ├── GuidedTour.jsx
+│   │   ├── Header.jsx
+│   │   ├── Layout.jsx
+│   │   ├── LoadingSpinner.jsx
+│   │   ├── ParticleBackground.jsx
+│   │   ├── ReadableText.jsx
+│   │   ├── SpeechWaveform.jsx
+│   │   ├── ui/
+│   │   │   ├── accordion.jsx
+│   │   │   ├── button.jsx
+│   │   │   ├── card.jsx
+│   │   │   ├── input.jsx
+│   │   │   ├── label.jsx
+│   │   │   ├── select.jsx
+│   ├── contexts/
+│   │   ├── ThemeContext.jsx
+│   ├── data/
+│   │   ├── sentences.json
+│   ├── lib/
+│   │   ├── utils.js
+│   ├── pages/
+│   │   ├── Analyze.jsx
+│   │   ├── Documentation.jsx
+│   │   ├── Home.jsx
+│   │   ├── Results.jsx
+│   ├── styles/
+│   │   ├── globals.css
+│   │   ├── output.css
 ```
 
 ## Installation
@@ -73,5 +108,4 @@ This repository contains the frontend for the AI-powered stutter detection syste
 ## Contributing
 
 Contributions are welcome!
-
 
