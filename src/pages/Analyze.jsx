@@ -16,7 +16,6 @@ export function Analyze() {
   const [isRecording, setIsRecording] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isPreviewingRecording, setIsPreviewingRecording] = useState(false)
   const [error, setError] = useState(null)
   const [gradeLevel, setGradeLevel] = useState("Class_1_3")
   const videoRef = useRef(null)
@@ -63,7 +62,6 @@ export function Analyze() {
       }
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "video/webm" })
-        setFile(new File([blob], "recorded_video.webm", { type: "video/webm" }))
         saveRecording(blob)
         chunksRef.current = []
       }
@@ -80,26 +78,32 @@ export function Analyze() {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
-      const blob = new Blob(chunksRef.current, { type: "video/webm" })
-      saveRecording(blob)
-      chunksRef.current = []
     }
   }
 
   const saveRecording = (blob) => {
+    // Create a URL for the blob
     const url = URL.createObjectURL(blob)
-    setFile(new File([blob], "recorded_video.webm", { type: "video/webm" }))
+
+    // Set the file for preview in the video element
+    const newFile = new File([blob], "recorded_video.webm", { type: "video/webm" })
+    setFile(newFile)
     videoRef.current.src = url
     videoRef.current.muted = false
-    setIsPreviewingRecording(true)
 
+    // Create a download link and trigger it
     const a = document.createElement("a")
-    document.body.appendChild(a)
-    a.style = "display: none"
+    a.style.display = "none"
     a.href = url
     a.download = "recorded_video.mp4"
+    document.body.appendChild(a)
     a.click()
-    window.URL.revokeObjectURL(url)
+
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a)
+      // Don't revoke the URL here as it's still needed for the video preview
+    }, 100)
   }
 
   const togglePlayPause = () => {
@@ -298,9 +302,9 @@ export function Analyze() {
               transition={{ delay: 0.6 }}
               className="space-y-4"
             >
-              <p className="text-lg text-muted-foreground">
-                Read the following text aloud. Use the buttons to navigate or wait for the text to change automatically
-                every 15 seconds.
+              <p className="text-lg text-muted-foreground mb-4">
+                While recording, please read the following text aloud. Use the buttons to navigate through different
+                sentences.
               </p>
               <ReadableText gradeLevel={gradeLevel} />
             </motion.div>

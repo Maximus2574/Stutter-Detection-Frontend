@@ -22,16 +22,6 @@ const ReadableText = ({ gradeLevel }) => {
     }
   }, [sentences, currentIndex])
 
-  useEffect(() => {
-    if (sentences.length === 0) return
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % sentences.length)
-    }, 15000) // Change text every 15 seconds
-
-    return () => clearInterval(interval)
-  }, [sentences])
-
   const handlePrevious = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + sentences.length) % sentences.length)
   }
@@ -43,7 +33,7 @@ const ReadableText = ({ gradeLevel }) => {
   return (
     <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-primary/20">
       <h3 className="text-lg font-semibold mb-4 text-primary">Read the following text:</h3>
-      <div className="min-h-[100px] flex items-center justify-center">
+      <div className="min-h-[100px] flex items-center justify-center mb-6">
         <AnimatePresence mode="wait">
           <motion.p
             key={currentText}
@@ -57,7 +47,7 @@ const ReadableText = ({ gradeLevel }) => {
           </motion.p>
         </AnimatePresence>
       </div>
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between">
         <Button
           onClick={handlePrevious}
           variant="outline"
