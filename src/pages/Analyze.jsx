@@ -78,49 +78,58 @@ export function Analyze() {
     }
   }
 
-  const startRecording = () => {
+  const startRecording = async () => {
     try {
-      if (!streamRef.current) {
-        setError("No camera or microphone access. Please refresh and try again.")
-        return
+      // Ensure previous stream is stopped
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
-
-      // Check if we have audio
-      const audioTracks = streamRef.current.getAudioTracks()
+  
+      // Request a new media stream
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+  
+      streamRef.current = newStream; // Store the new stream
+  
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+        videoRef.current.muted = true; // Mute to prevent feedback
+      }
+  
+      // Check for microphone access
+      const audioTracks = newStream.getAudioTracks();
       if (audioTracks.length === 0) {
-        setError("No microphone detected. Please check your microphone settings.")
-        return
+        setError("No microphone detected. Please check your microphone settings.");
+        return;
       }
-
-      // Create a new MediaRecorder with the stream
-      mediaRecorderRef.current = new MediaRecorder(streamRef.current)
-
-      // Clear previous chunks
-      chunksRef.current = []
-
-      // Add data when available
+  
+      // Create a new MediaRecorder with the new stream
+      mediaRecorderRef.current = new MediaRecorder(newStream);
+  
+      // Reset recorded chunks
+      chunksRef.current = [];
+  
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
-          chunksRef.current.push(event.data)
+          chunksRef.current.push(event.data);
         }
-      }
-
-      // Handle recording stop
+      };
+  
       mediaRecorderRef.current.onstop = () => {
-        // Create a blob from all chunks
-        const blob = new Blob(chunksRef.current, { type: "video/webm" })
-        saveRecording(blob)
-      }
-
-      // Start recording
-      mediaRecorderRef.current.start()
-      setIsRecording(true)
+        const blob = new Blob(chunksRef.current, { type: "video/webm" });
+        saveRecording(blob);
+      };
+  
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
     } catch (err) {
-      console.error("Error starting recording:", err)
-      setError(`Recording error: ${err.message}`)
+      console.error("Error starting recording:", err);
+      setError(`Recording error: ${err.message}`);
     }
-  }
-
+  };
+  
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop()
@@ -167,21 +176,30 @@ export function Analyze() {
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     if (!file) {
-      setError("Please upload a file or record a video before analyzing.")
+      setError("Please upload or record a video before analyzing.")
       return
     }
-
     setIsAnalyzing(true)
-    setError(null)
-
-    // Simulating analysis delay
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsAnalyzing(false)
-    navigate("/results")
+    const formData = new FormData()
+    formData.append("file", file)
+    try {
+      const response = await fetch("http://localhost:5000/upload_audio", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await response.json()
+      if (data.task_id) {
+        navigate(`/results?task_id=${data.task_id}`)
+      } else {
+        setError("Error starting analysis.")
+      }
+    } catch (error) {
+      setError("Error communicating with server.")
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
