@@ -7,7 +7,7 @@ const tourSteps = [
   {
     target: "home",
     title: "Welcome",
-    content: "Welcome to Stutter Detection AI! This is your dashboard for powerful speech analysis.",
+    content: "Welcome to StutterSense! This is your dashboard for powerful speech analysis.",
     position: "bottom",
   },
   {
